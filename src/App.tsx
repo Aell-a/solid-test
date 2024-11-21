@@ -1,16 +1,15 @@
-import React, { FunctionComponent } from "react";
-import { Header } from "./components/Header";
-import { Blog } from "./components/Blog";
+import React from "react";
 import { BrowserSolidLdoProvider } from "@ldo/solid-react";
+import { Layout } from "./components/Layout";
+import { Blog } from "./components/Blog";
 
-const App: FunctionComponent = () => {
+const App: React.FC = () => {
   return (
-    <div className="App">
-      <BrowserSolidLdoProvider>
-        <Header />
+    <BrowserSolidLdoProvider>
+      <Layout>
         <Blog />
-      </BrowserSolidLdoProvider>
-    </div>
+      </Layout>
+    </BrowserSolidLdoProvider>
   );
 };
 

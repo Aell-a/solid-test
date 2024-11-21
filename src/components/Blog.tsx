@@ -1,12 +1,11 @@
-import { Fragment, FunctionComponent, useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { MakePost } from "./MakePost";
 import { Post } from "./Post";
 import { useLdo, useResource, useSolidAuth } from "@ldo/solid-react";
 import { ContainerUri, Container } from "@ldo/solid";
 
-export const Blog: FunctionComponent = () => {
+export const Blog = () => {
   const { session } = useSolidAuth();
-
   const { getResource } = useLdo();
   const [mainContainerUri, setMainContainerUri] = useState<
     ContainerUri | undefined
@@ -26,24 +25,26 @@ export const Blog: FunctionComponent = () => {
 
   const mainContainer = useResource(mainContainerUri);
 
-  if (!session.isLoggedIn) return <p>No blog available. Log in first.</p>;
+  if (!session.isLoggedIn)
+    return (
+      <div
+        className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4"
+        role="alert"
+      >
+        <p className="font-bold">Not Logged In</p>
+        <p>Please log in to view and create blog posts.</p>
+      </div>
+    );
 
   return (
-    <main>
+    <div className="space-y-8">
       <MakePost mainContainer={mainContainer} />
-      <hr />
-      {mainContainer
-        // Get all the children of the main container
-        ?.children()
-        // Filter out children that aren't containers themselves
-        .filter((child): child is Container => child.type === "container")
-        // Render a "Post" for each child
-        .map((child) => (
-          <Fragment key={child.uri}>
-            <Post key={child.uri} postUri={child.uri} />
-            <hr />
-          </Fragment>
-        ))}
-    </main>
+      <div className="space-y-4">
+        {mainContainer
+          ?.children()
+          .filter((child): child is Container => child.type === "container")
+          .map((child) => <Post key={child.uri} postUri={child.uri} />)}
+      </div>
+    </div>
   );
 };
