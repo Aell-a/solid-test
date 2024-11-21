@@ -1,17 +1,49 @@
-import { FunctionComponent } from "react";
+import { Fragment, FunctionComponent, useEffect, useState } from "react";
 import { MakePost } from "./MakePost";
 import { Post } from "./Post";
-import { useSolidAuth } from "@ldo/solid-react";
+import { useLdo, useResource, useSolidAuth } from "@ldo/solid-react";
+import { ContainerUri, Container } from "@ldo/solid";
 
 export const Blog: FunctionComponent = () => {
   const { session } = useSolidAuth();
+
+  const { getResource } = useLdo();
+  const [mainContainerUri, setMainContainerUri] = useState<
+    ContainerUri | undefined
+  >();
+
+  useEffect(() => {
+    if (session.webId) {
+      const webIdResource = getResource(session.webId);
+      webIdResource.getRootContainer().then((rootContainerResult) => {
+        if (rootContainerResult.isError) return;
+        const mainContainer = rootContainerResult.child("solid-blog/");
+        setMainContainerUri(mainContainer.uri);
+        mainContainer.createIfAbsent();
+      });
+    }
+  }, [getResource, session.webId]);
+
+  const mainContainer = useResource(mainContainerUri);
+
   if (!session.isLoggedIn) return <p>No blog available. Log in first.</p>;
 
   return (
     <main>
-      <MakePost />
+      <MakePost mainContainer={mainContainer} />
       <hr />
-      <Post />
+      {mainContainer
+        // Get all the children of the main container
+        ?.children()
+        // Filter out children that aren't containers themselves
+        .filter((child): child is Container => child.type === "container")
+        // Render a "Post" for each child
+        .map((child) => (
+          <Fragment key={child.uri}>
+            <Post key={child.uri} postUri={child.uri} />
+            <hr />
+          </Fragment>
+        ))}
     </main>
   );
 };
